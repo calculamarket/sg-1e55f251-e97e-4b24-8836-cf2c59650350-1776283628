@@ -40,7 +40,7 @@ serve(async (req) => {
       .from("mercadolivre_configs")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (configError || !config) {
       console.error("❌ Mercado Livre não configurado:", configError);
@@ -55,43 +55,39 @@ serve(async (req) => {
 
     console.log("✅ Configuração Mercado Livre encontrada");
 
-    // Buscar pedidos usando o Access Token
-    const mlUrl = "https://api.mercadolibre.com/orders/search?seller=" + config.client_id + "&sort=date_desc&limit=50";
-    
+    // Buscar pedidos dos últimos 30 dias
+    const mlUrl = `https://api.mercadolibre.com/orders/search?seller=${config.client_id}&access_token=${config.access_token}`;
+
     console.log("🔄 Buscando pedidos do Mercado Livre...");
 
-    const mlResponse = await fetch(mlUrl, {
-      headers: {
-        "Authorization": `Bearer ${config.access_token}`,
-      },
-    });
+    const mlResponse = await fetch(mlUrl);
+    const mlData = await mlResponse.json();
 
-    if (!mlResponse.ok) {
-      const errorData = await mlResponse.json();
-      console.error("❌ Erro da API Mercado Livre:", errorData);
+    console.log("📦 Resposta Mercado Livre:", JSON.stringify(mlData, null, 2));
+
+    if (mlData.error) {
+      console.error("❌ Erro da API Mercado Livre:", mlData);
       return new Response(JSON.stringify({ 
-        error: "Erro ao buscar pedidos do Mercado Livre", 
-        details: errorData.message || "Token inválido ou expirado",
-        mlError: errorData
+        error: "Erro ao buscar pedidos do Mercado Livre",
+        details: mlData.message || mlData.error,
+        mlError: mlData
       }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const mlData = await mlResponse.json();
     const orders = mlData.results || [];
     console.log(`📋 ${orders.length} pedidos encontrados`);
 
-    // Processar pedidos
     const ordersToInsert = orders.map((order: any) => ({
       user_id: user.id,
       marketplace: "Mercado Livre",
       order_id: order.id.toString(),
       customer_name: order.buyer?.nickname || "Cliente ML",
       product_name: order.order_items?.map((item: any) => item.item.title).join(", ") || "Produto",
-      total_value: order.total_amount || 0,
-      status: mapMLStatus(order.status),
+      total_value: order.total_amount,
+      status: mapMercadoLivreStatus(order.status),
       order_date: new Date(order.date_created).toISOString(),
     }));
 
@@ -101,7 +97,7 @@ serve(async (req) => {
     if (ordersToInsert.length > 0) {
       const { error: insertError } = await supabaseClient
         .from("orders")
-        .upsert(ordersToInsert, { onConflict: "user_id,order_id" });
+        .upsert(ordersToInsert, { onConflict: "user_id,marketplace,order_id" });
 
       if (insertError) {
         console.error("❌ Erro ao inserir pedidos:", insertError);
@@ -130,7 +126,7 @@ serve(async (req) => {
     console.error("❌ Erro geral:", error);
     return new Response(JSON.stringify({ 
       error: "Erro interno no servidor",
-      details: error.message 
+      details: error.message
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -138,17 +134,14 @@ serve(async (req) => {
   }
 });
 
-function mapMLStatus(status: string): string {
+function mapMercadoLivreStatus(status: string): string {
   const statusMap: Record<string, string> = {
     "confirmed": "processing",
     "payment_required": "pending",
     "payment_in_process": "pending",
-    "partially_paid": "pending",
+    "partially_paid": "processing",
     "paid": "processing",
-    "partially_refunded": "processing",
-    "pending_cancel": "processing",
     "cancelled": "cancelled",
-    "invalid": "cancelled",
     "shipped": "shipped",
     "delivered": "completed",
   };

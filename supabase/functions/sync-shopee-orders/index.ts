@@ -40,7 +40,7 @@ serve(async (req) => {
       .from("shopee_configs")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
     if (configError || !config) {
       console.error("❌ Shopee não configurada:", configError);
@@ -155,7 +155,7 @@ serve(async (req) => {
     if (ordersToInsert.length > 0) {
       const { error: insertError } = await supabaseClient
         .from("orders")
-        .upsert(ordersToInsert, { onConflict: "user_id,order_id" });
+        .upsert(ordersToInsert, { onConflict: "user_id,marketplace,order_id" });
 
       if (insertError) {
         console.error("❌ Erro ao inserir pedidos:", insertError);
