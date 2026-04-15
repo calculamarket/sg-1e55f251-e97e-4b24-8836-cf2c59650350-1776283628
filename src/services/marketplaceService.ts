@@ -209,8 +209,9 @@ export async function syncShopeeOrders() {
   console.log("Resposta Shopee:", { data, error });
 
   if (error) {
-    console.error("Erro detalhado Shopee:", error);
-    throw new Error(error.message || "Erro ao sincronizar pedidos da Shopee");
+    console.error("Erro detalhado Shopee:", JSON.stringify(error, null, 2));
+    const errorMsg = error.context?.body?.details || error.context?.body?.error || error.message;
+    throw new Error(errorMsg || "Erro ao sincronizar pedidos da Shopee");
   }
   
   return data;
@@ -234,8 +235,9 @@ export async function syncMercadoLivreOrders() {
   console.log("Resposta Mercado Livre:", { data, error });
 
   if (error) {
-    console.error("Erro detalhado Mercado Livre:", error);
-    throw new Error(error.message || "Erro ao sincronizar pedidos do Mercado Livre");
+    console.error("Erro detalhado Mercado Livre:", JSON.stringify(error, null, 2));
+    const errorMsg = error.context?.body?.details || error.context?.body?.error || error.message;
+    throw new Error(errorMsg || "Erro ao sincronizar pedidos do Mercado Livre");
   }
   
   return data;
@@ -259,8 +261,9 @@ export async function syncAllMarketplaces() {
   console.log("Resposta sincronização geral:", { data, error });
 
   if (error) {
-    console.error("Erro detalhado sincronização geral:", error);
-    throw new Error(error.message || "Erro ao sincronizar marketplaces");
+    console.error("❌ Erro completo sync-all:", JSON.stringify(error, null, 2));
+    const errorMsg = error.context?.body?.details || error.context?.body?.error || error.message;
+    throw new Error(errorMsg || "Erro ao sincronizar marketplaces");
   }
   
   return data;
