@@ -222,9 +222,27 @@ export default function Settings() {
       const result = await syncAllMarketplaces(Number(syncPeriod));
       console.log("✅ Resultado sincronização:", result);
       
+      // Mostrar detalhes de cada marketplace
+      const shopeeMsg = result.results?.shopee?.success 
+        ? `Shopee: ${result.results.shopee.synced} pedidos`
+        : `Shopee: ${result.results?.shopee?.message || "Erro"}`;
+      
+      const mlMsg = result.results?.mercadolivre?.success 
+        ? `ML: ${result.results.mercadolivre.synced} pedidos`
+        : `ML: ${result.results?.mercadolivre?.message || "Erro"}`;
+      
+      const hasErrors = !result.results?.shopee?.success || !result.results?.mercadolivre?.success;
+      
       toast({
-        title: "Sincronização concluída",
-        description: result.message || "Sincronização finalizada",
+        title: hasErrors ? "Sincronização com avisos" : "Sincronização concluída",
+        description: (
+          <div className="space-y-1">
+            <p>{result.message}</p>
+            <p className="text-sm">{shopeeMsg}</p>
+            <p className="text-sm">{mlMsg}</p>
+          </div>
+        ),
+        variant: hasErrors ? "default" : "default",
       });
     } catch (error: any) {
       console.error("❌ Erro completo:", error);
