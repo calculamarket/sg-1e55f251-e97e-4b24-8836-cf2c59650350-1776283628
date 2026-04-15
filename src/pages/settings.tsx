@@ -139,15 +139,24 @@ export default function Settings() {
   const handleSyncShopee = async () => {
     setIsSyncing(true);
     try {
-      await syncShopeeOrders();
+      const result = await syncShopeeOrders();
+      console.log("✅ Resultado sincronização:", result);
       toast({
-        title: "Sincronização iniciada",
-        description: "Pedidos da Shopee estão sendo sincronizados",
+        title: "Sincronização concluída",
+        description: result.message || `${result.synced || 0} pedidos sincronizados`,
       });
     } catch (error: any) {
+      console.error("❌ Erro completo:", error);
+      
+      // Exibir mensagem de erro detalhada
+      const errorMessage = error.context?.body?.details 
+        || error.context?.body?.error 
+        || error.message 
+        || "Erro desconhecido na sincronização";
+      
       toast({
         title: "Erro na sincronização",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -158,15 +167,23 @@ export default function Settings() {
   const handleSyncMercadoLivre = async () => {
     setIsSyncing(true);
     try {
-      await syncMercadoLivreOrders();
+      const result = await syncMercadoLivreOrders();
+      console.log("✅ Resultado sincronização:", result);
       toast({
-        title: "Sincronização iniciada",
-        description: "Pedidos do Mercado Livre estão sendo sincronizados",
+        title: "Sincronização concluída",
+        description: result.message || `${result.synced || 0} pedidos sincronizados`,
       });
     } catch (error: any) {
+      console.error("❌ Erro completo:", error);
+      
+      const errorMessage = error.context?.body?.details 
+        || error.context?.body?.error 
+        || error.message 
+        || "Erro desconhecido na sincronização";
+      
       toast({
         title: "Erro na sincronização",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -177,15 +194,23 @@ export default function Settings() {
   const handleSyncAll = async () => {
     setIsSyncing(true);
     try {
-      await syncAllMarketplaces();
+      const result = await syncAllMarketplaces();
+      console.log("✅ Resultado sincronização:", result);
       toast({
-        title: "Sincronização iniciada",
-        description: "Pedidos de todos marketplaces estão sendo sincronizados",
+        title: "Sincronização concluída",
+        description: result.message || "Sincronização finalizada",
       });
     } catch (error: any) {
+      console.error("❌ Erro completo:", error);
+      
+      const errorMessage = error.context?.body?.details 
+        || error.context?.body?.error 
+        || error.message 
+        || "Erro desconhecido na sincronização";
+      
       toast({
         title: "Erro na sincronização",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
