@@ -7,13 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, XCircle, Key } from "lucide-react";
+import { CheckCircle2, XCircle, Key, RefreshCw, ShoppingBag, Package } from "lucide-react";
 import {
   getMercadoLivreConfig,
   saveMercadoLivreConfig,
   getShopeeConfig,
-  saveShopeeConfig
+  saveShopeeConfig,
+  syncShopeeOrders,
+  syncMercadoLivreOrders,
+  syncAllMarketplaces
 } from "@/services/marketplaceService";
+import cn from "classnames";
 
 interface MercadoLivreConfig {
   client_id: string;
@@ -41,6 +45,7 @@ export default function Settings() {
     partner_key: "",
     shop_id: ""
   });
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     loadConfigs();
@@ -131,6 +136,63 @@ export default function Settings() {
     }
   };
 
+  const handleSyncShopee = async () => {
+    setIsSyncing(true);
+    try {
+      await syncShopeeOrders();
+      toast({
+        title: "Sincronização iniciada",
+        description: "Pedidos da Shopee estão sendo sincronizados",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro na sincronização",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncMercadoLivre = async () => {
+    setIsSyncing(true);
+    try {
+      await syncMercadoLivreOrders();
+      toast({
+        title: "Sincronização iniciada",
+        description: "Pedidos do Mercado Livre estão sendo sincronizados",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro na sincronização",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncAll = async () => {
+    setIsSyncing(true);
+    try {
+      await syncAllMarketplaces();
+      toast({
+        title: "Sincronização iniciada",
+        description: "Pedidos de todos marketplaces estão sendo sincronizados",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro na sincronização",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const isMercadoLivreConfigured = mercadoLivre.client_id && mercadoLivre.client_secret && mercadoLivre.access_token;
   const isShopeeConfigured = shopee.partner_id && shopee.partner_key && shopee.shop_id;
 
@@ -155,9 +217,15 @@ export default function Settings() {
       />
       <DashboardLayout>
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground font-heading">Configurações</h1>
-            <p className="text-muted-foreground mt-1">Gerencie as credenciais de API dos marketplaces</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold font-heading">Configurações</h1>
+              <p className="text-muted-foreground">Configure as credenciais de API dos marketplaces</p>
+            </div>
+            <Button onClick={handleSyncAll} disabled={isSyncing} className="gap-2">
+              <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+              Sincronizar Tudo
+            </Button>
           </div>
 
           <div className="grid gap-6">
