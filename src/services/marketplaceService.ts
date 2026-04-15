@@ -198,13 +198,21 @@ export async function syncShopeeOrders() {
     throw new Error("Usuário não autenticado");
   }
 
+  console.log("Iniciando sincronização Shopee...");
+
   const { data, error } = await supabase.functions.invoke("sync-shopee-orders", {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
   });
 
-  if (error) throw error;
+  console.log("Resposta Shopee:", { data, error });
+
+  if (error) {
+    console.error("Erro detalhado Shopee:", error);
+    throw new Error(error.message || "Erro ao sincronizar pedidos da Shopee");
+  }
+  
   return data;
 }
 
@@ -215,13 +223,21 @@ export async function syncMercadoLivreOrders() {
     throw new Error("Usuário não autenticado");
   }
 
+  console.log("Iniciando sincronização Mercado Livre...");
+
   const { data, error } = await supabase.functions.invoke("sync-mercadolivre-orders", {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
   });
 
-  if (error) throw error;
+  console.log("Resposta Mercado Livre:", { data, error });
+
+  if (error) {
+    console.error("Erro detalhado Mercado Livre:", error);
+    throw new Error(error.message || "Erro ao sincronizar pedidos do Mercado Livre");
+  }
+  
   return data;
 }
 
@@ -232,12 +248,20 @@ export async function syncAllMarketplaces() {
     throw new Error("Usuário não autenticado");
   }
 
+  console.log("Iniciando sincronização de todos marketplaces...");
+
   const { data, error } = await supabase.functions.invoke("sync-all-marketplaces", {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
   });
 
-  if (error) throw error;
+  console.log("Resposta sincronização geral:", { data, error });
+
+  if (error) {
+    console.error("Erro detalhado sincronização geral:", error);
+    throw new Error(error.message || "Erro ao sincronizar marketplaces");
+  }
+  
   return data;
 }
