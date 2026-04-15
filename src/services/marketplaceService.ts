@@ -189,3 +189,55 @@ export async function getDashboardMetrics() {
 
   return aggregated;
 }
+
+// Sincronização de pedidos
+export async function syncShopeeOrders() {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  const { data, error } = await supabase.functions.invoke("sync-shopee-orders", {
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function syncMercadoLivreOrders() {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  const { data, error } = await supabase.functions.invoke("sync-mercadolivre-orders", {
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function syncAllMarketplaces() {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    throw new Error("Usuário não autenticado");
+  }
+
+  const { data, error } = await supabase.functions.invoke("sync-all-marketplaces", {
+    headers: {
+      Authorization: `Bearer ${session.access_token}`,
+    },
+  });
+
+  if (error) throw error;
+  return data;
+}
