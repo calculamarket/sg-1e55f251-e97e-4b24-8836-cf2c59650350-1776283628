@@ -16,7 +16,7 @@ export function DistributionChart() {
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ name, percentage }) => `${name}: ${percentage}%`}
+          label={(props: any) => `${props.name}: ${props.payload.percentage}%`}
           outerRadius={100}
           fill="#8884d8"
           dataKey="value"
