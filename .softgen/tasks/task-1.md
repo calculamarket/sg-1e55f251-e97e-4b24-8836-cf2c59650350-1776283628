@@ -19,6 +19,6 @@ Dados serão mockados inicialmente (localStorage) até integração com APIs.
 - [x] Criar componente MetricCard: card com ícone, título, valor, variação percentual
 - [x] Criar página index.tsx: layout com header, grid de métricas (4 cards), gráfico de área para vendas, tabela de pedidos recentes
 - [x] Adicionar navegação: Sidebar com links para Dashboard e Configurações
-- [ ] Implementar gráfico de vendas usando biblioteca de charts
+- [x] Implementar gráfico de vendas usando biblioteca de charts
 - [ ] Criar tabela de pedidos com colunas: ID, marketplace, cliente, valor, status, data
 - [ ] Adicionar filtros: período (7/30/90 dias), marketplace
