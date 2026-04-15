@@ -191,19 +191,20 @@ export async function getDashboardMetrics() {
 }
 
 // Sincronização de pedidos
-export async function syncShopeeOrders() {
+export async function syncShopeeOrders(days: number = 15) {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
     throw new Error("Usuário não autenticado");
   }
 
-  console.log("Iniciando sincronização Shopee...");
+  console.log(`Iniciando sincronização Shopee (${days} dias)...`);
 
   const { data, error } = await supabase.functions.invoke("sync-shopee-orders", {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
+    body: { days },
   });
 
   console.log("Resposta Shopee:", { data, error });
@@ -217,19 +218,20 @@ export async function syncShopeeOrders() {
   return data;
 }
 
-export async function syncMercadoLivreOrders() {
+export async function syncMercadoLivreOrders(days: number = 15) {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
     throw new Error("Usuário não autenticado");
   }
 
-  console.log("Iniciando sincronização Mercado Livre...");
+  console.log(`Iniciando sincronização Mercado Livre (${days} dias)...`);
 
   const { data, error } = await supabase.functions.invoke("sync-mercadolivre-orders", {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
+    body: { days },
   });
 
   console.log("Resposta Mercado Livre:", { data, error });
@@ -243,19 +245,20 @@ export async function syncMercadoLivreOrders() {
   return data;
 }
 
-export async function syncAllMarketplaces() {
+export async function syncAllMarketplaces(days: number = 15) {
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
     throw new Error("Usuário não autenticado");
   }
 
-  console.log("Iniciando sincronização de todos marketplaces...");
+  console.log(`Iniciando sincronização de todos marketplaces (${days} dias)...`);
 
   const { data, error } = await supabase.functions.invoke("sync-all-marketplaces", {
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
+    body: { days },
   });
 
   console.log("Resposta sincronização geral:", { data, error });

@@ -18,6 +18,7 @@ import {
   syncAllMarketplaces
 } from "@/services/marketplaceService";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MercadoLivreConfig {
   client_id: string;
@@ -46,6 +47,7 @@ export default function Settings() {
     shop_id: ""
   });
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncPeriod, setSyncPeriod] = useState("15"); // dias
 
   useEffect(() => {
     loadConfigs();
@@ -139,21 +141,26 @@ export default function Settings() {
   const handleSyncShopee = async () => {
     setIsSyncing(true);
     try {
-      const result = await syncShopeeOrders();
+      console.log(`🚀 Iniciando sincronização Shopee (últimos ${syncPeriod} dias)...`);
+      const result = await syncShopeeOrders(Number(syncPeriod));
       console.log("✅ Resultado sincronização:", result);
+      
+      const message = result.synced > 0 
+        ? `${result.synced} pedidos sincronizados da Shopee`
+        : "Nenhum pedido encontrado no período selecionado";
+      
       toast({
-        title: "Sincronização concluída",
-        description: result.message || `${result.synced || 0} pedidos sincronizados`,
+        title: result.synced > 0 ? "Sincronização concluída" : "Nenhum pedido encontrado",
+        description: message,
+        variant: result.synced > 0 ? "default" : "default",
       });
     } catch (error: any) {
       console.error("❌ Erro completo:", error);
       console.error("❌ Erro JSON:", JSON.stringify(error, null, 2));
       
-      // Exibir mensagem de erro detalhada
       let errorMessage = "Erro desconhecido na sincronização";
       
       if (error.context?.body) {
-        // Se temos o body da resposta
         const body = error.context.body;
         errorMessage = body.details || body.error || body.message || JSON.stringify(body);
       } else if (error.message) {
@@ -173,11 +180,17 @@ export default function Settings() {
   const handleSyncMercadoLivre = async () => {
     setIsSyncing(true);
     try {
-      const result = await syncMercadoLivreOrders();
+      console.log(`🚀 Iniciando sincronização Mercado Livre (últimos ${syncPeriod} dias)...`);
+      const result = await syncMercadoLivreOrders(Number(syncPeriod));
       console.log("✅ Resultado sincronização:", result);
+      
+      const message = result.synced > 0 
+        ? `${result.synced} pedidos sincronizados do Mercado Livre`
+        : "Nenhum pedido encontrado no período selecionado";
+      
       toast({
-        title: "Sincronização concluída",
-        description: result.message || `${result.synced || 0} pedidos sincronizados`,
+        title: result.synced > 0 ? "Sincronização concluída" : "Nenhum pedido encontrado",
+        description: message,
       });
     } catch (error: any) {
       console.error("❌ Erro completo:", error);
@@ -205,8 +218,10 @@ export default function Settings() {
   const handleSyncAll = async () => {
     setIsSyncing(true);
     try {
-      const result = await syncAllMarketplaces();
+      console.log(`🚀 Iniciando sincronização de todos marketplaces (últimos ${syncPeriod} dias)...`);
+      const result = await syncAllMarketplaces(Number(syncPeriod));
       console.log("✅ Resultado sincronização:", result);
+      
       toast({
         title: "Sincronização concluída",
         description: result.message || "Sincronização finalizada",
@@ -217,7 +232,6 @@ export default function Settings() {
       
       let errorMessage = "Erro desconhecido na sincronização";
       
-      // Tentar extrair a mensagem mais específica possível
       if (error.context?.body) {
         const body = error.context.body;
         errorMessage = body.details || body.error || body.message || JSON.stringify(body);
@@ -264,10 +278,27 @@ export default function Settings() {
               <h1 className="text-3xl font-bold font-heading">Configurações</h1>
               <p className="text-muted-foreground">Configure as credenciais de API dos marketplaces</p>
             </div>
-            <Button onClick={handleSyncAll} disabled={isSyncing} className="gap-2">
-              <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
-              Sincronizar Tudo
-            </Button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Período:</label>
+                <Select value={syncPeriod} onValueChange={setSyncPeriod}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Últimos 7 dias</SelectItem>
+                    <SelectItem value="15">Últimos 15 dias</SelectItem>
+                    <SelectItem value="30">Últimos 30 dias</SelectItem>
+                    <SelectItem value="60">Últimos 60 dias</SelectItem>
+                    <SelectItem value="90">Últimos 90 dias</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleSyncAll} disabled={isSyncing} className="gap-2">
+                <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+                Sincronizar Tudo
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-6">

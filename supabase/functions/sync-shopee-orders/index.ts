@@ -35,12 +35,16 @@ serve(async (req) => {
 
     console.log("✅ Usuário autenticado:", user.id);
 
+    // Buscar período da requisição (padrão: 15 dias)
+    const { days = 15 } = await req.json().catch(() => ({ days: 15 }));
+    console.log(`📅 Período de busca: últimos ${days} dias`);
+
     // Buscar configuração da Shopee do usuário
     const { data: config, error: configError } = await supabaseClient
       .from("shopee_configs")
       .select("*")
       .eq("user_id", user.id)
-      .maybeSingle();
+      .single();
 
     if (configError || !config) {
       console.error("❌ Shopee não configurada:", configError);
@@ -54,6 +58,8 @@ serve(async (req) => {
     }
 
     console.log("✅ Configuração Shopee encontrada");
+    console.log("Partner ID:", config.partner_id);
+    console.log("Shop ID:", config.shop_id);
 
     // Gerar assinatura HMAC SHA256 para autenticação Shopee
     const timestamp = Math.floor(Date.now() / 1000);
@@ -80,13 +86,13 @@ serve(async (req) => {
       .map(b => b.toString(16).padStart(2, "0"))
       .join("");
 
-    // Buscar pedidos dos últimos 15 dias
-    const timeFrom = Math.floor(Date.now() / 1000) - (15 * 24 * 60 * 60);
+    // Buscar pedidos do período especificado
+    const timeFrom = Math.floor(Date.now() / 1000) - (days * 24 * 60 * 60);
     const timeTo = Math.floor(Date.now() / 1000);
 
-    const shopeeUrl = `https://partner.shopeemobile.com${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&shop_id=${shopId}&time_range_field=create_time&time_from=${timeFrom}&time_to=${timeTo}&page_size=50`;
+    const shopeeUrl = `https://partner.shopeemobile.com${path}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}&shop_id=${shopId}&time_range_field=create_time&time_from=${timeFrom}&time_to=${timeTo}&page_size=100`;
 
-    console.log("🔄 Buscando pedidos da Shopee...");
+    console.log(`🔄 Buscando pedidos da Shopee (${new Date(timeFrom * 1000).toISOString()} até ${new Date(timeTo * 1000).toISOString()})...`);
 
     const shopeeResponse = await fetch(shopeeUrl, {
       method: "GET",
@@ -114,6 +120,17 @@ serve(async (req) => {
     const orderList = shopeeData.response?.order_list || [];
     console.log(`📋 ${orderList.length} pedidos encontrados`);
     
+    if (orderList.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          synced: 0,
+          message: `Nenhum pedido encontrado nos últimos ${days} dias`
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     const ordersToInsert = [];
 
     for (const orderSummary of orderList) {
@@ -121,14 +138,15 @@ serve(async (req) => {
       
       // Buscar detalhes do pedido
       const detailPath = "/api/v2/order/get_order_detail";
-      const detailBaseString = `${partnerId}${detailPath}${timestamp}`;
+      const detailTimestamp = Math.floor(Date.now() / 1000);
+      const detailBaseString = `${partnerId}${detailPath}${detailTimestamp}`;
       const detailMessageData = encoder.encode(detailBaseString);
       const detailSignature = await crypto.subtle.sign("HMAC", cryptoKey, detailMessageData);
       const detailSign = Array.from(new Uint8Array(detailSignature))
         .map(b => b.toString(16).padStart(2, "0"))
         .join("");
 
-      const detailUrl = `https://partner.shopeemobile.com${detailPath}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${detailSign}&shop_id=${shopId}&order_sn_list=${orderSn}`;
+      const detailUrl = `https://partner.shopeemobile.com${detailPath}?partner_id=${partnerId}&timestamp=${detailTimestamp}&sign=${detailSign}&shop_id=${shopId}&order_sn_list=${orderSn}`;
       
       const detailResponse = await fetch(detailUrl);
       const detailData = await detailResponse.json();
@@ -175,7 +193,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         synced: ordersToInsert.length,
-        message: `${ordersToInsert.length} pedidos sincronizados da Shopee`
+        message: `${ordersToInsert.length} pedidos sincronizados da Shopee (últimos ${days} dias)`
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
