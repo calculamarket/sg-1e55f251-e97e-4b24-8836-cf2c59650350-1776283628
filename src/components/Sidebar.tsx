@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LayoutDashboard, Settings, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Settings, ShoppingBag, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
@@ -8,6 +8,7 @@ export function Sidebar() {
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Pedidos", href: "/orders", icon: Package },
     { name: "Configurações", href: "/settings", icon: Settings }
   ];
 
