@@ -8,42 +8,75 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle2, XCircle, Key } from "lucide-react";
+import {
+  getMercadoLivreConfig,
+  saveMercadoLivreConfig,
+  getShopeeConfig,
+  saveShopeeConfig
+} from "@/services/marketplaceService";
 
 interface MercadoLivreConfig {
-  clientId: string;
-  clientSecret: string;
-  accessToken: string;
+  client_id: string;
+  client_secret: string;
+  access_token: string;
 }
 
 interface ShopeeConfig {
-  partnerId: string;
-  partnerKey: string;
-  shopId: string;
+  partner_id: string;
+  partner_key: string;
+  shop_id: string;
 }
 
 export default function Settings() {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<"ml" | "shopee" | null>(null);
   const [mercadoLivre, setMercadoLivre] = useState<MercadoLivreConfig>({
-    clientId: "",
-    clientSecret: "",
-    accessToken: ""
+    client_id: "",
+    client_secret: "",
+    access_token: ""
   });
   const [shopee, setShopee] = useState<ShopeeConfig>({
-    partnerId: "",
-    partnerKey: "",
-    shopId: ""
+    partner_id: "",
+    partner_key: "",
+    shop_id: ""
   });
 
   useEffect(() => {
-    const savedML = localStorage.getItem("mercadoLivre");
-    const savedShopee = localStorage.getItem("shopee");
-    
-    if (savedML) setMercadoLivre(JSON.parse(savedML));
-    if (savedShopee) setShopee(JSON.parse(savedShopee));
+    loadConfigs();
   }, []);
 
-  const handleSaveMercadoLivre = () => {
-    if (!mercadoLivre.clientId || !mercadoLivre.clientSecret || !mercadoLivre.accessToken) {
+  const loadConfigs = async () => {
+    try {
+      const [mlConfig, shopeeConfig] = await Promise.all([
+        getMercadoLivreConfig(),
+        getShopeeConfig()
+      ]);
+
+      if (mlConfig) {
+        setMercadoLivre({
+          client_id: mlConfig.client_id,
+          client_secret: mlConfig.client_secret,
+          access_token: mlConfig.access_token
+        });
+      }
+
+      if (shopeeConfig) {
+        setShopee({
+          partner_id: shopeeConfig.partner_id,
+          partner_key: shopeeConfig.partner_key,
+          shop_id: shopeeConfig.shop_id
+        });
+      }
+    } catch (error: any) {
+      console.error("Erro ao carregar configurações:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveMercadoLivre = async () => {
+    if (!mercadoLivre.client_id || !mercadoLivre.client_secret || !mercadoLivre.access_token) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha todos os campos do Mercado Livre",
@@ -52,15 +85,26 @@ export default function Settings() {
       return;
     }
 
-    localStorage.setItem("mercadoLivre", JSON.stringify(mercadoLivre));
-    toast({
-      title: "Configuração salva",
-      description: "Credenciais do Mercado Livre foram salvas com sucesso"
-    });
+    setSaving("ml");
+    try {
+      await saveMercadoLivreConfig(mercadoLivre);
+      toast({
+        title: "Configuração salva",
+        description: "Credenciais do Mercado Livre foram salvas com sucesso"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao salvar",
+        description: error.message || "Não foi possível salvar as configurações",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(null);
+    }
   };
 
-  const handleSaveShopee = () => {
-    if (!shopee.partnerId || !shopee.partnerKey || !shopee.shopId) {
+  const handleSaveShopee = async () => {
+    if (!shopee.partner_id || !shopee.partner_key || !shopee.shop_id) {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha todos os campos da Shopee",
@@ -69,15 +113,39 @@ export default function Settings() {
       return;
     }
 
-    localStorage.setItem("shopee", JSON.stringify(shopee));
-    toast({
-      title: "Configuração salva",
-      description: "Credenciais da Shopee foram salvas com sucesso"
-    });
+    setSaving("shopee");
+    try {
+      await saveShopeeConfig(shopee);
+      toast({
+        title: "Configuração salva",
+        description: "Credenciais da Shopee foram salvas com sucesso"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao salvar",
+        description: error.message || "Não foi possível salvar as configurações",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(null);
+    }
   };
 
-  const isMercadoLivreConfigured = mercadoLivre.clientId && mercadoLivre.clientSecret && mercadoLivre.accessToken;
-  const isShopeeConfigured = shopee.partnerId && shopee.partnerKey && shopee.shopId;
+  const isMercadoLivreConfigured = mercadoLivre.client_id && mercadoLivre.client_secret && mercadoLivre.access_token;
+  const isShopeeConfigured = shopee.partner_id && shopee.partner_key && shopee.shop_id;
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Carregando configurações...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <>
@@ -126,8 +194,9 @@ export default function Settings() {
                     id="ml-client-id"
                     type="text"
                     placeholder="Digite o Client ID"
-                    value={mercadoLivre.clientId}
-                    onChange={(e) => setMercadoLivre({ ...mercadoLivre, clientId: e.target.value })}
+                    value={mercadoLivre.client_id}
+                    onChange={(e) => setMercadoLivre({ ...mercadoLivre, client_id: e.target.value })}
+                    disabled={saving === "ml"}
                   />
                 </div>
 
@@ -137,8 +206,9 @@ export default function Settings() {
                     id="ml-client-secret"
                     type="password"
                     placeholder="Digite o Client Secret"
-                    value={mercadoLivre.clientSecret}
-                    onChange={(e) => setMercadoLivre({ ...mercadoLivre, clientSecret: e.target.value })}
+                    value={mercadoLivre.client_secret}
+                    onChange={(e) => setMercadoLivre({ ...mercadoLivre, client_secret: e.target.value })}
+                    disabled={saving === "ml"}
                   />
                 </div>
 
@@ -148,13 +218,18 @@ export default function Settings() {
                     id="ml-access-token"
                     type="password"
                     placeholder="Digite o Access Token"
-                    value={mercadoLivre.accessToken}
-                    onChange={(e) => setMercadoLivre({ ...mercadoLivre, accessToken: e.target.value })}
+                    value={mercadoLivre.access_token}
+                    onChange={(e) => setMercadoLivre({ ...mercadoLivre, access_token: e.target.value })}
+                    disabled={saving === "ml"}
                   />
                 </div>
 
-                <Button onClick={handleSaveMercadoLivre} className="w-full">
-                  Salvar Configurações
+                <Button 
+                  onClick={handleSaveMercadoLivre} 
+                  className="w-full"
+                  disabled={saving === "ml"}
+                >
+                  {saving === "ml" ? "Salvando..." : "Salvar Configurações"}
                 </Button>
               </div>
             </Card>
@@ -192,8 +267,9 @@ export default function Settings() {
                     id="shopee-partner-id"
                     type="text"
                     placeholder="Digite o Partner ID"
-                    value={shopee.partnerId}
-                    onChange={(e) => setShopee({ ...shopee, partnerId: e.target.value })}
+                    value={shopee.partner_id}
+                    onChange={(e) => setShopee({ ...shopee, partner_id: e.target.value })}
+                    disabled={saving === "shopee"}
                   />
                 </div>
 
@@ -203,8 +279,9 @@ export default function Settings() {
                     id="shopee-partner-key"
                     type="password"
                     placeholder="Digite o Partner Key"
-                    value={shopee.partnerKey}
-                    onChange={(e) => setShopee({ ...shopee, partnerKey: e.target.value })}
+                    value={shopee.partner_key}
+                    onChange={(e) => setShopee({ ...shopee, partner_key: e.target.value })}
+                    disabled={saving === "shopee"}
                   />
                 </div>
 
@@ -214,13 +291,18 @@ export default function Settings() {
                     id="shopee-shop-id"
                     type="text"
                     placeholder="Digite o Shop ID"
-                    value={shopee.shopId}
-                    onChange={(e) => setShopee({ ...shopee, shopId: e.target.value })}
+                    value={shopee.shop_id}
+                    onChange={(e) => setShopee({ ...shopee, shop_id: e.target.value })}
+                    disabled={saving === "shopee"}
                   />
                 </div>
 
-                <Button onClick={handleSaveShopee} className="w-full">
-                  Salvar Configurações
+                <Button 
+                  onClick={handleSaveShopee} 
+                  className="w-full"
+                  disabled={saving === "shopee"}
+                >
+                  {saving === "shopee" ? "Salvando..." : "Salvar Configurações"}
                 </Button>
               </div>
             </Card>
