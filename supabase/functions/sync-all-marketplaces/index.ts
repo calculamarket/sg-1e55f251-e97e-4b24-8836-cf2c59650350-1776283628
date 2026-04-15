@@ -27,7 +27,10 @@ serve(async (req) => {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
       console.error("❌ Usuário não autenticado");
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      return new Response(JSON.stringify({ 
+        error: "Unauthorized",
+        details: "Usuário não autenticado" 
+      }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -36,12 +39,12 @@ serve(async (req) => {
     console.log("✅ Usuário autenticado:", user.id);
 
     const results = {
-      shopee: { success: false, synced: 0, error: null as string | null },
-      mercadolivre: { success: false, synced: 0, error: null as string | null }
+      shopee: { success: false, message: "", synced: 0 },
+      mercadolivre: { success: false, message: "", synced: 0 }
     };
 
-    // Sincronizar Shopee
-    console.log("🔄 Verificando configuração Shopee...");
+    // Verificar configuração Shopee
+    console.log("🔍 Verificando configuração Shopee...");
     const { data: shopeeConfig } = await supabaseClient
       .from("shopee_configs")
       .select("*")
@@ -51,35 +54,35 @@ serve(async (req) => {
     if (shopeeConfig) {
       console.log("✅ Shopee configurada, iniciando sincronização...");
       try {
-        const shopeeResult = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/sync-shopee-orders`, {
-          method: "POST",
-          headers: {
-            Authorization: req.headers.get("Authorization")!,
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: shopeeResult, error: shopeeError } = await supabaseClient.functions.invoke(
+          "sync-shopee-orders",
+          {
+            headers: {
+              Authorization: req.headers.get("Authorization")!,
+            },
+          }
+        );
 
-        const shopeeData = await shopeeResult.json();
-        
-        if (shopeeResult.ok) {
-          results.shopee.success = true;
-          results.shopee.synced = shopeeData.synced || 0;
-          console.log(`✅ Shopee: ${shopeeData.synced} pedidos sincronizados`);
+        if (shopeeError) {
+          console.error("❌ Erro Shopee:", shopeeError);
+          results.shopee.message = shopeeError.message || "Erro ao sincronizar Shopee";
         } else {
-          results.shopee.error = shopeeData.details || shopeeData.error || "Erro desconhecido";
-          console.error("❌ Erro Shopee:", results.shopee.error);
+          console.log("✅ Shopee sincronizada:", shopeeResult);
+          results.shopee.success = true;
+          results.shopee.synced = shopeeResult?.synced || 0;
+          results.shopee.message = shopeeResult?.message || "Sincronizado com sucesso";
         }
-      } catch (error) {
-        results.shopee.error = error.message;
-        console.error("❌ Erro ao chamar sync-shopee:", error);
+      } catch (err) {
+        console.error("❌ Erro catch Shopee:", err);
+        results.shopee.message = err.message || "Erro ao sincronizar Shopee";
       }
     } else {
-      results.shopee.error = "Shopee não configurada";
       console.log("⚠️ Shopee não configurada");
+      results.shopee.message = "Shopee não configurada";
     }
 
-    // Sincronizar Mercado Livre
-    console.log("🔄 Verificando configuração Mercado Livre...");
+    // Verificar configuração Mercado Livre
+    console.log("🔍 Verificando configuração Mercado Livre...");
     const { data: mlConfig } = await supabaseClient
       .from("mercadolivre_configs")
       .select("*")
@@ -89,57 +92,63 @@ serve(async (req) => {
     if (mlConfig) {
       console.log("✅ Mercado Livre configurado, iniciando sincronização...");
       try {
-        const mlResult = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/sync-mercadolivre-orders`, {
-          method: "POST",
-          headers: {
-            Authorization: req.headers.get("Authorization")!,
-            "Content-Type": "application/json",
-          },
-        });
+        const { data: mlResult, error: mlError } = await supabaseClient.functions.invoke(
+          "sync-mercadolivre-orders",
+          {
+            headers: {
+              Authorization: req.headers.get("Authorization")!,
+            },
+          }
+        );
 
-        const mlData = await mlResult.json();
-        
-        if (mlResult.ok) {
-          results.mercadolivre.success = true;
-          results.mercadolivre.synced = mlData.synced || 0;
-          console.log(`✅ Mercado Livre: ${mlData.synced} pedidos sincronizados`);
+        if (mlError) {
+          console.error("❌ Erro Mercado Livre:", mlError);
+          results.mercadolivre.message = mlError.message || "Erro ao sincronizar Mercado Livre";
         } else {
-          results.mercadolivre.error = mlData.details || mlData.error || "Erro desconhecido";
-          console.error("❌ Erro Mercado Livre:", results.mercadolivre.error);
+          console.log("✅ Mercado Livre sincronizado:", mlResult);
+          results.mercadolivre.success = true;
+          results.mercadolivre.synced = mlResult?.synced || 0;
+          results.mercadolivre.message = mlResult?.message || "Sincronizado com sucesso";
         }
-      } catch (error) {
-        results.mercadolivre.error = error.message;
-        console.error("❌ Erro ao chamar sync-mercadolivre:", error);
+      } catch (err) {
+        console.error("❌ Erro catch Mercado Livre:", err);
+        results.mercadolivre.message = err.message || "Erro ao sincronizar Mercado Livre";
       }
     } else {
-      results.mercadolivre.error = "Mercado Livre não configurado";
       console.log("⚠️ Mercado Livre não configurado");
+      results.mercadolivre.message = "Mercado Livre não configurado";
     }
 
     const totalSynced = results.shopee.synced + results.mercadolivre.synced;
-    const hasErrors = results.shopee.error || results.mercadolivre.error;
+    const message = `${totalSynced} pedidos sincronizados (Shopee: ${results.shopee.synced}, ML: ${results.mercadolivre.synced})`;
 
-    console.log("📊 Resultado final:", JSON.stringify(results, null, 2));
+    console.log("✅ Sincronização completa:", message);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Sincronização concluída: ${totalSynced} pedidos no total`,
-        synced: totalSynced,
-        details: results,
-        hasErrors
+        message,
+        results,
+        synced: totalSynced
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { 
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      }
     );
 
   } catch (error) {
     console.error("❌ Erro geral:", error);
-    return new Response(JSON.stringify({ 
-      error: "Erro interno no servidor",
-      details: error.message 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ 
+        error: "Erro interno no servidor",
+        details: error.message,
+        stack: error.stack
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 });
