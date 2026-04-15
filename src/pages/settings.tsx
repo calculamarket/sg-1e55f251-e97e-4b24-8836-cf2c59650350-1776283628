@@ -147,15 +147,21 @@ export default function Settings() {
       });
     } catch (error: any) {
       console.error("❌ Erro completo:", error);
+      console.error("❌ Erro JSON:", JSON.stringify(error, null, 2));
       
       // Exibir mensagem de erro detalhada
-      const errorMessage = error.context?.body?.details 
-        || error.context?.body?.error 
-        || error.message 
-        || "Erro desconhecido na sincronização";
+      let errorMessage = "Erro desconhecido na sincronização";
+      
+      if (error.context?.body) {
+        // Se temos o body da resposta
+        const body = error.context.body;
+        errorMessage = body.details || body.error || body.message || JSON.stringify(body);
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       toast({
-        title: "Erro na sincronização",
+        title: "Erro na sincronização da Shopee",
         description: errorMessage,
         variant: "destructive",
       });
@@ -175,14 +181,19 @@ export default function Settings() {
       });
     } catch (error: any) {
       console.error("❌ Erro completo:", error);
+      console.error("❌ Erro JSON:", JSON.stringify(error, null, 2));
       
-      const errorMessage = error.context?.body?.details 
-        || error.context?.body?.error 
-        || error.message 
-        || "Erro desconhecido na sincronização";
+      let errorMessage = "Erro desconhecido na sincronização";
+      
+      if (error.context?.body) {
+        const body = error.context.body;
+        errorMessage = body.details || body.error || body.message || JSON.stringify(body);
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       toast({
-        title: "Erro na sincronização",
+        title: "Erro na sincronização do Mercado Livre",
         description: errorMessage,
         variant: "destructive",
       });
@@ -202,11 +213,17 @@ export default function Settings() {
       });
     } catch (error: any) {
       console.error("❌ Erro completo:", error);
+      console.error("❌ Erro JSON:", JSON.stringify(error, null, 2));
       
-      const errorMessage = error.context?.body?.details 
-        || error.context?.body?.error 
-        || error.message 
-        || "Erro desconhecido na sincronização";
+      let errorMessage = "Erro desconhecido na sincronização";
+      
+      // Tentar extrair a mensagem mais específica possível
+      if (error.context?.body) {
+        const body = error.context.body;
+        errorMessage = body.details || body.error || body.message || JSON.stringify(body);
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
       toast({
         title: "Erro na sincronização",
