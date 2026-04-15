@@ -17,7 +17,7 @@ import {
   syncMercadoLivreOrders,
   syncAllMarketplaces
 } from "@/services/marketplaceService";
-import cn from "classnames";
+import { cn } from "@/lib/utils";
 
 interface MercadoLivreConfig {
   client_id: string;

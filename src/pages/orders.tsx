@@ -209,7 +209,7 @@ export default function Orders() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-medium">
-                          R$ {Number(order.total_amount || 0).toFixed(2).replace('.', ',')}
+                          R$ {Number(order.total_value || 0).toFixed(2).replace('.', ',')}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>
