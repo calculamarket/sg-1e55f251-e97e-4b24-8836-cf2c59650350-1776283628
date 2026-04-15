@@ -1,10 +1,35 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LayoutDashboard, Settings, ShoppingBag, Package } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LayoutDashboard, Settings, ShoppingBag, Package, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export function Sidebar() {
   const router = useRouter();
+  const { toast } = useToast();
+  const [userEmail, setUserEmail] = useState<string>("");
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUser();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Logout realizado",
+      description: "Até logo!"
+    });
+    router.push("/auth/login");
+  };
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -47,16 +72,26 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border space-y-2">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-primary font-semibold text-sm">U</span>
+            <span className="text-primary font-semibold text-sm">
+              {userEmail ? userEmail[0].toUpperCase() : "U"}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">Usuário</p>
-            <p className="text-xs text-muted-foreground truncate">usuario@email.com</p>
+            <p className="text-xs text-muted-foreground truncate">{userEmail || "usuario@email.com"}</p>
           </div>
         </div>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Sair</span>
+        </Button>
       </div>
     </aside>
   );
