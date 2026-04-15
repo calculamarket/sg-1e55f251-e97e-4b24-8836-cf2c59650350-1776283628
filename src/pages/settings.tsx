@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, XCircle, Key, RefreshCw, ShoppingBag, Package } from "lucide-react";
+import { CheckCircle2, XCircle, Key, RefreshCw, ShoppingBag, Package, Bug } from "lucide-react";
 import {
   getMercadoLivreConfig,
   saveMercadoLivreConfig,
@@ -267,6 +267,48 @@ export default function Settings() {
     }
   };
 
+  const handleDebugShopee = async () => {
+    try {
+      const response = await fetch("/api/debug-shopee");
+      const result = await response.json();
+      
+      console.log("🐛 DEBUG SHOPEE - Resultado completo:");
+      console.log(JSON.stringify(result, null, 2));
+      
+      if (result.shopeeResponse?.error) {
+        toast({
+          title: "⚠️ Erro da API Shopee",
+          description: (
+            <div className="space-y-2">
+              <p className="font-semibold">Erro: {result.shopeeResponse.error}</p>
+              <p className="text-sm">{result.shopeeResponse.message || "Verifique suas credenciais"}</p>
+              <p className="text-xs text-muted-foreground">Abra o Console (F12) para ver detalhes completos</p>
+            </div>
+          ),
+          variant: "destructive",
+        });
+      } else if (result.shopeeResponse?.response) {
+        const orderCount = result.shopeeResponse.response.order_list?.length || 0;
+        toast({
+          title: "✅ API Shopee OK",
+          description: `${orderCount} pedidos encontrados. Veja detalhes no Console (F12)`,
+        });
+      } else {
+        toast({
+          title: "🔍 Resposta inesperada",
+          description: "Abra o Console (F12) para ver a resposta completa da API",
+        });
+      }
+    } catch (error: any) {
+      console.error("❌ Erro no debug:", error);
+      toast({
+        title: "Erro ao testar API",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const isMercadoLivreConfigured = mercadoLivre.client_id && mercadoLivre.client_secret && mercadoLivre.access_token;
   const isShopeeConfigured = shopee.partner_id && shopee.partner_key && shopee.shop_id;
 
@@ -394,7 +436,7 @@ export default function Settings() {
             </Card>
 
             <Card className="p-6">
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center">
                     <Key className="h-6 w-6 text-orange-600" />
