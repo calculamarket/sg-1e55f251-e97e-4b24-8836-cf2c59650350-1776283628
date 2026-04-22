@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/database.types";
 
-export type Product = Tables<"products">;
-export type ProductInsert = TablesInsert<"products">;
+export type Product = Database["public"]["Tables"]["products"]["Row"];
+export type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 
 // Produtos
 export async function getProducts() {
@@ -39,13 +39,15 @@ export async function saveProduct(product: Omit<ProductInsert, "user_id" | "id">
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
 
+  const productToSave: ProductInsert = {
+    ...product,
+    user_id: user.id,
+    updated_at: new Date().toISOString()
+  };
+
   const { data, error } = await supabase
     .from("products")
-    .upsert({
-      ...product,
-      user_id: user.id,
-      updated_at: new Date().toISOString()
-    }, {
+    .upsert(productToSave, {
       onConflict: "user_id,sku"
     })
     .select()
