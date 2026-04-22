@@ -228,7 +228,7 @@ export async function importOrdersFromCSV(rows: MercadoLivreRow[]) {
   const { data, error } = await supabase
     .from("orders")
     .upsert(ordersToInsert, {
-      onConflict: "user_id,order_id",
+      onConflict: "user_id,marketplace,order_id",
       ignoreDuplicates: false
     })
     .select();
