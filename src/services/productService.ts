@@ -249,7 +249,7 @@ export async function importOrdersFromCSV(rows: MercadoLivreRow[]) {
     .from("orders")
     .upsert(ordersToInsert, {
       onConflict: "user_id,marketplace,order_id",
-      ignoreDuplicates: false
+      ignoreDuplicates: true
     })
     .select();
 
