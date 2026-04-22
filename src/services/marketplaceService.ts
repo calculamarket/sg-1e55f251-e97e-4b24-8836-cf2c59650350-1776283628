@@ -6,6 +6,16 @@ export type ShopeeConfig = Tables<"shopee_configs">;
 export type Order = Tables<"orders">;
 export type SalesMetric = Tables<"sales_metrics">;
 
+export interface DashboardMetrics {
+  totalSales: number;
+  totalOrders: number;
+  totalProfit: number;
+  averageTicket: number;
+  salesByMarketplace: Record<string, number>;
+  ordersCount: Record<string, number>;
+  profitMargin: number;
+}
+
 // Mercado Livre Config
 export async function getMercadoLivreConfig() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -142,52 +152,68 @@ export async function getSalesMetrics(days: number = 30) {
   return data || [];
 }
 
-export async function getDashboardMetrics() {
+export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
 
-  // Buscar métricas do mês atual
-  const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-  
-  const { data, error } = await supabase
-    .from("sales_metrics")
+  // Buscar todos os pedidos
+  const { data: orders, error: ordersError } = await supabase
+    .from("orders")
     .select("*")
-    .eq("user_id", user.id)
-    .gte("metric_date", firstDay.toISOString().split("T")[0])
-    .order("metric_date", { ascending: false });
+    .eq("user_id", user.id);
 
-  console.log("getDashboardMetrics:", { data, error });
+  if (ordersError) throw ordersError;
 
-  if (error) throw error;
+  // Buscar produtos para calcular lucro
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select("*")
+    .eq("user_id", user.id);
 
-  const metrics = data || [];
-  
-  // Agregar por marketplace
-  const aggregated = {
-    total: { sales: 0, orders: 0, ticket: 0, conversion: 0 },
-    mercadolivre: { sales: 0, orders: 0, ticket: 0, conversion: 0 },
-    shopee: { sales: 0, orders: 0, ticket: 0, conversion: 0 }
-  };
+  if (productsError) throw productsError;
 
-  metrics.forEach(metric => {
-    const key = metric.marketplace === "Mercado Livre" ? "mercadolivre" 
-              : metric.marketplace === "Shopee" ? "shopee" 
-              : "total";
-    
-    aggregated[key].sales += Number(metric.total_sales || 0);
-    aggregated[key].orders += metric.total_orders || 0;
-  });
+  const productMap = new Map(products?.map(p => [p.sku, p]) || []);
 
-  // Calcular tickets médios
-  Object.keys(aggregated).forEach(key => {
-    const metrics = aggregated[key as keyof typeof aggregated];
-    if (metrics.orders > 0) {
-      metrics.ticket = metrics.sales / metrics.orders;
+  let totalSales = 0;
+  let totalProfit = 0;
+  const salesByMarketplace: Record<string, number> = {};
+  const ordersCount: Record<string, number> = {};
+
+  (orders || []).forEach(order => {
+    const saleValue = Number(order.total_value || 0);
+    totalSales += saleValue;
+
+    // Contadores por marketplace
+    const marketplace = order.marketplace || "Outros";
+    salesByMarketplace[marketplace] = (salesByMarketplace[marketplace] || 0) + saleValue;
+    ordersCount[marketplace] = (ordersCount[marketplace] || 0) + 1;
+
+    // Calcular lucro se produto estiver cadastrado
+    const product = productMap.get(order.sku || "");
+    if (product) {
+      const costPrice = Number(product.cost_price || 0);
+      const shippingCost = Number(product.shipping_cost || 0);
+      const feePercent = Number(product.platform_fee_percent || 0);
+      const platformFee = saleValue * (feePercent / 100);
+      const otherCosts = Number(product.other_costs || 0);
+      const totalCost = costPrice + shippingCost + platformFee + otherCosts;
+      totalProfit += saleValue - totalCost;
     }
   });
 
-  return aggregated;
+  const totalOrders = orders?.length || 0;
+  const averageTicket = totalOrders > 0 ? totalSales / totalOrders : 0;
+  const profitMargin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+
+  return {
+    totalSales,
+    totalOrders,
+    totalProfit,
+    averageTicket,
+    salesByMarketplace,
+    ordersCount,
+    profitMargin
+  };
 }
 
 // Sincronização de pedidos
