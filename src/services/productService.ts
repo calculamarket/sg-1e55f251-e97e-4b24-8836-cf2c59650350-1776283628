@@ -211,6 +211,26 @@ export async function importOrdersFromCSV(rows: MercadoLivreRow[]) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado");
 
+  // Auto-criar produtos para SKUs que não existem
+  const uniqueSkus = [...new Set(rows.map(r => r.sku).filter(Boolean))];
+  
+  for (const sku of uniqueSkus) {
+    const existing = await getProductBySku(sku);
+    if (!existing) {
+      const row = rows.find(r => r.sku === sku);
+      if (row) {
+        await saveProduct({
+          sku,
+          name: row.productName,
+          cost_price: null,
+          shipping_cost: null,
+          platform_fee_percent: 15, // Taxa padrão ML
+          other_costs: null
+        });
+      }
+    }
+  }
+
   const ordersToInsert = rows.map(row => ({
     user_id: user.id,
     order_id: row.orderNumber,
