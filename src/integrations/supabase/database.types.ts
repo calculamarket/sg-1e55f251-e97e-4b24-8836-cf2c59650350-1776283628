@@ -64,6 +64,7 @@ export type Database = {
           product_name: string
           quantity: number
           shipped_date: string | null
+          sku: string | null
           status: string
           total_value: number
           unit_price: number
@@ -82,6 +83,7 @@ export type Database = {
           product_name: string
           quantity?: number
           shipped_date?: string | null
+          sku?: string | null
           status: string
           total_value: number
           unit_price: number
@@ -100,9 +102,52 @@ export type Database = {
           product_name?: string
           quantity?: number
           shipped_date?: string | null
+          sku?: string | null
           status?: string
           total_value?: number
           unit_price?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          cost_price: number
+          created_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          other_costs: number
+          platform_fee_percent: number
+          shipping_cost: number
+          sku: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cost_price?: number
+          created_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          other_costs?: number
+          platform_fee_percent?: number
+          shipping_cost?: number
+          sku: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cost_price?: number
+          created_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          other_costs?: number
+          platform_fee_percent?: number
+          shipping_cost?: number
+          sku?: string
           updated_at?: string | null
           user_id?: string
         }

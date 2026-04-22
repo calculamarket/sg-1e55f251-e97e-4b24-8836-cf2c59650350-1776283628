@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Package, MoreHorizontal, Eye, RefreshCw } from "lucide-react";
+import { Search, Filter, Package, MoreHorizontal, Eye, RefreshCw, Upload, TrendingUp } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -26,7 +26,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getOrders, syncAllMarketplaces } from "@/services/marketplaceService";
+import { analyzeProfits, type ProfitAnalysis } from "@/services/productService";
+import { ExcelUpload } from "@/components/ExcelUpload";
 import { useToast } from "@/hooks/use-toast";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
@@ -49,6 +58,9 @@ export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+  const [showProfitAnalysis, setShowProfitAnalysis] = useState(false);
+  const [profitAnalysis, setProfitAnalysis] = useState<ProfitAnalysis[]>([]);
 
   const loadOrders = async () => {
     try {
@@ -89,6 +101,20 @@ export default function Orders() {
     }
   };
 
+  const handleShowProfitAnalysis = async () => {
+    try {
+      const analysis = await analyzeProfits(filteredOrders);
+      setProfitAnalysis(analysis);
+      setShowProfitAnalysis(true);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao calcular lucros",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     loadOrders();
   }, [marketplace, status]);
@@ -100,6 +126,11 @@ export default function Orders() {
       order.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
+
+  const totalProfit = profitAnalysis.reduce((sum, item) => sum + item.profit, 0);
+  const avgMargin = profitAnalysis.length > 0
+    ? profitAnalysis.reduce((sum, item) => sum + item.profitMargin, 0) / profitAnalysis.length
+    : 0;
 
   return (
     <>
@@ -115,6 +146,14 @@ export default function Orders() {
               <Button variant="outline" className="gap-2" onClick={handleSync} disabled={syncing}>
                 <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
                 Sincronizar
+              </Button>
+              <Button variant="outline" className="gap-2" onClick={() => setShowUpload(true)}>
+                <Upload className="h-4 w-4" />
+                Importar CSV
+              </Button>
+              <Button variant="outline" className="gap-2" onClick={handleShowProfitAnalysis}>
+                <TrendingUp className="h-4 w-4" />
+                Análise de Lucro
               </Button>
               <Button className="gap-2">
                 <Filter className="h-4 w-4" />
@@ -234,6 +273,110 @@ export default function Orders() {
             </div>
           </div>
         </div>
+
+        {/* Dialog Upload */}
+        <Dialog open={showUpload} onOpenChange={setShowUpload}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Importar Planilha de Vendas</DialogTitle>
+              <DialogDescription>
+                Importe o relatório CSV do Mercado Livre para análise de lucros
+              </DialogDescription>
+            </DialogHeader>
+            <ExcelUpload onImportComplete={() => {
+              setShowUpload(false);
+              loadOrders();
+            }} />
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog Análise de Lucro */}
+        <Dialog open={showProfitAnalysis} onOpenChange={setShowProfitAnalysis}>
+          <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Análise de Lucro</DialogTitle>
+              <DialogDescription>
+                Análise detalhada de custos e lucros por pedido
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-card border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground">Lucro Total</p>
+                <p className={cn(
+                  "text-2xl font-bold",
+                  totalProfit >= 0 ? "text-green-600" : "text-red-600"
+                )}>
+                  R$ {totalProfit.toFixed(2).replace('.', ',')}
+                </p>
+              </div>
+              <div className="bg-card border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground">Margem Média</p>
+                <p className={cn(
+                  "text-2xl font-bold",
+                  avgMargin >= 0 ? "text-green-600" : "text-red-600"
+                )}>
+                  {avgMargin.toFixed(1)}%
+                </p>
+              </div>
+              <div className="bg-card border rounded-lg p-4">
+                <p className="text-sm text-muted-foreground">Pedidos Analisados</p>
+                <p className="text-2xl font-bold">{profitAnalysis.length}</p>
+              </div>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Pedido</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Produto</TableHead>
+                  <TableHead className="text-right">Venda</TableHead>
+                  <TableHead className="text-right">Custo</TableHead>
+                  <TableHead className="text-right">Taxa</TableHead>
+                  <TableHead className="text-right">Lucro</TableHead>
+                  <TableHead className="text-right">Margem</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {profitAnalysis.map((item) => (
+                  <TableRow key={item.orderId}>
+                    <TableCell className="font-medium">{item.orderId}</TableCell>
+                    <TableCell>
+                      {item.sku ? (
+                        <Badge variant="outline">{item.sku}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">Sem SKU</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate">{item.productName}</TableCell>
+                    <TableCell className="text-right">
+                      R$ {item.salePrice.toFixed(2).replace('.', ',')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      R$ {item.totalCost.toFixed(2).replace('.', ',')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      R$ {item.platformFee.toFixed(2).replace('.', ',')}
+                    </TableCell>
+                    <TableCell className={cn(
+                      "text-right font-medium",
+                      item.profit >= 0 ? "text-green-600" : "text-red-600"
+                    )}>
+                      R$ {item.profit.toFixed(2).replace('.', ',')}
+                    </TableCell>
+                    <TableCell className={cn(
+                      "text-right font-medium",
+                      item.profitMargin >= 0 ? "text-green-600" : "text-red-600"
+                    )}>
+                      {item.profitMargin.toFixed(1)}%
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DialogContent>
+        </Dialog>
       </DashboardLayout>
     </>
   );
