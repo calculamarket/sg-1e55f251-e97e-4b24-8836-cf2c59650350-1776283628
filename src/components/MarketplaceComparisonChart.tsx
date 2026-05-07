@@ -11,11 +11,13 @@ export function MarketplaceComparisonChart({ salesByMarketplace, ordersCount }: 
   const maxSales = Math.max(...Object.values(salesByMarketplace), 1);
 
   return (
-    <Card>
+    <Card className="border-0 bg-white">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <BarChart className="h-5 w-5 text-primary" />
-          <CardTitle>Comparação por Marketplace</CardTitle>
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--xp-sky)]">
+            <BarChart className="h-5 w-5 text-[var(--xp-sky-d)]" />
+          </span>
+          <CardTitle className="font-heading text-3xl font-black">Comparação por Marketplace</CardTitle>
         </div>
         <CardDescription>Vendas por plataforma</CardDescription>
       </CardHeader>
@@ -40,9 +42,9 @@ export function MarketplaceComparisonChart({ salesByMarketplace, ordersCount }: 
                       <p className="text-xs text-muted-foreground">{orders} pedidos</p>
                     </div>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-3 overflow-hidden rounded-full bg-muted">
                     <div 
-                      className="h-full bg-primary rounded-full transition-all"
+                      className="h-full rounded-full bg-[var(--xp-peach-d)] transition-all"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>

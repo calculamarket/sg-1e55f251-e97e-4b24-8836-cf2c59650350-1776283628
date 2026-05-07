@@ -49,13 +49,16 @@ export default function Login() {
   return (
     <>
       <SEO title="Login - Dashboard Marketplaces" />
-      <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-        <Card className="w-full max-w-md p-8">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+        <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-[var(--xp-peach)] opacity-80 blur-sm" />
+        <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[var(--xp-lilac)] opacity-80 blur-sm" />
+        <Card className="relative w-full max-w-md border-0 bg-white/90 p-8">
           <div className="flex flex-col items-center mb-8">
-            <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-              <ShoppingBag className="h-8 w-8 text-primary" />
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--xp-peach)]">
+              <ShoppingBag className="h-8 w-8 text-foreground" />
             </div>
-            <h1 className="text-2xl font-bold font-heading">Dashboard Marketplaces</h1>
+            <div className="xp-chip mb-4">Soft commerce</div>
+            <h1 className="text-center font-heading text-4xl font-black leading-none">Dashboard Marketplaces</h1>
             <p className="text-muted-foreground text-sm">Entre na sua conta</p>
           </div>
 

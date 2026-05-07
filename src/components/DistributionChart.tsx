@@ -10,18 +10,20 @@ export function DistributionChart({ salesByMarketplace }: DistributionChartProps
   const marketplaces = Object.entries(salesByMarketplace);
 
   const colors = [
-    "bg-primary",
-    "bg-secondary", 
-    "bg-accent",
-    "bg-muted-foreground"
+    "bg-[var(--xp-peach-d)]",
+    "bg-[var(--xp-mint-d)]", 
+    "bg-[var(--xp-sky-d)]",
+    "bg-[var(--xp-lilac-d)]"
   ];
 
   return (
-    <Card>
+    <Card className="border-0 bg-white">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <PieChart className="h-5 w-5 text-primary" />
-          <CardTitle>Distribuição de Vendas</CardTitle>
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--xp-lilac)]">
+            <PieChart className="h-5 w-5 text-[var(--xp-lilac-d)]" />
+          </span>
+          <CardTitle className="font-heading text-3xl font-black">Distribuição de Vendas</CardTitle>
         </div>
         <CardDescription>Participação de cada marketplace</CardDescription>
       </CardHeader>
@@ -36,13 +38,13 @@ export function DistributionChart({ salesByMarketplace }: DistributionChartProps
               const percentage = total > 0 ? (sales / total) * 100 : 0;
               
               return (
-                <div key={marketplace} className="space-y-2">
+                <div key={marketplace} className="space-y-2 rounded-[1.5rem] bg-[var(--xp-bg)] p-4">
                   <div className="flex items-center gap-2">
                     <div className={`h-3 w-3 rounded-full ${colors[index % colors.length]}`} />
                     <span className="text-sm font-medium">{marketplace}</span>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{percentage.toFixed(1)}%</p>
+                    <p className="font-heading text-4xl font-black">{percentage.toFixed(1)}%</p>
                     <p className="text-sm text-muted-foreground">
                       R$ {sales.toFixed(2).replace(".", ",")}
                     </p>

@@ -177,7 +177,9 @@ export default function Products() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold font-heading">Produtos</h1>
+              <div className="xp-chip mb-4">Cost library</div>
+              <h1 className="xp-page-title">Produtos</h1>
+              <div className="xp-divider" />
               <p className="text-muted-foreground">Gerencie seus produtos e custos</p>
             </div>
             <Button onClick={() => handleOpenDialog()} className="gap-2">
@@ -186,7 +188,7 @@ export default function Products() {
             </Button>
           </div>
 
-          <div className="bg-card border rounded-lg shadow-sm">
+          <div className="xp-soft-panel bg-white">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

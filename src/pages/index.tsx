@@ -58,8 +58,14 @@ export default function Dashboard() {
       <DashboardLayout>
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-bold font-heading">Dashboard</h1>
-            <p className="text-muted-foreground">Acompanhe suas vendas em tempo real</p>
+            <div className="xp-chip mb-4">Living With Data · 2026</div>
+            <h1 className="xp-page-title">
+              Dashboard <em className="text-[var(--xp-peach-d)]">pastel</em>
+            </h1>
+            <div className="xp-divider" />
+            <p className="max-w-3xl text-lg leading-8 text-muted-foreground">
+              Acompanhe suas vendas em tempo real com uma leitura mais leve, visual e organizada.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -100,8 +106,14 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <SalesChart />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="xp-soft-panel bg-white p-6">
+              <div className="mb-5">
+                <div className="xp-chip mb-3">Sales rhythm</div>
+                <h2 className="font-heading text-3xl font-black">Vendas por mês</h2>
+              </div>
+              <SalesChart />
+            </div>
             <MarketplaceComparisonChart 
               salesByMarketplace={metrics.salesByMarketplace}
               ordersCount={metrics.ordersCount}

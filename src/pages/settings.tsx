@@ -335,7 +335,9 @@ export default function Settings() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold font-heading">Configurações</h1>
+              <div className="xp-chip mb-4">Connections</div>
+              <h1 className="xp-page-title">Configurações</h1>
+              <div className="xp-divider" />
               <p className="text-muted-foreground">Configure as credenciais de API dos marketplaces</p>
             </div>
             <div className="flex items-center gap-4">
@@ -362,10 +364,10 @@ export default function Settings() {
           </div>
 
           <div className="grid gap-6">
-            <Card className="p-6">
+            <Card className="border-0 bg-white p-6">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--xp-lemon)]">
                     <Key className="h-6 w-6 text-yellow-600" />
                   </div>
                   <div>
@@ -435,10 +437,10 @@ export default function Settings() {
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card className="border-0 bg-white p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--xp-peach)]">
                     <Key className="h-6 w-6 text-orange-600" />
                   </div>
                   <div>

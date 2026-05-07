@@ -5,19 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+          "bg-[var(--xp-peach)] text-foreground shadow hover:bg-[var(--xp-rose)]",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
-          "border bg-transparent shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 border-border dark:hover:bg-input/50",
+          "border bg-white/80 shadow-sm hover:bg-[var(--xp-mint)] hover:text-foreground dark:bg-white/80 border-border dark:hover:bg-[var(--xp-mint)]",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-[var(--xp-mint)] text-foreground shadow-sm hover:bg-[var(--xp-sky)]",
+        ghost: "hover:bg-[var(--xp-lilac)] hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

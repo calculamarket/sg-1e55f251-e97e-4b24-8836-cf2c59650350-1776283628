@@ -19,7 +19,7 @@ export function SalesChart() {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(42,35,64,.1)" />
         <XAxis 
           dataKey="mes" 
           className="text-xs"
@@ -34,7 +34,8 @@ export function SalesChart() {
           contentStyle={{ 
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
-            borderRadius: "var(--radius)"
+            borderRadius: "24px",
+            boxShadow: "var(--xp-shadow)"
           }}
           formatter={(value: number) => [`R$ ${value.toLocaleString("pt-BR")}`, ""]}
         />
@@ -45,17 +46,17 @@ export function SalesChart() {
         <Line 
           type="monotone" 
           dataKey="mercadoLivre" 
-          stroke="#FFEB00"
+          stroke="#f48b5c"
           strokeWidth={3}
-          dot={{ fill: "#FFEB00", r: 4 }}
+          dot={{ fill: "#f48b5c", r: 4 }}
           activeDot={{ r: 6 }}
         />
         <Line 
           type="monotone" 
           dataKey="shopee" 
-          stroke="#EE4D2D"
+          stroke="#7b5dc4"
           strokeWidth={3}
-          dot={{ fill: "#EE4D2D", r: 4 }}
+          dot={{ fill: "#7b5dc4", r: 4 }}
           activeDot={{ r: 6 }}
         />
       </LineChart>

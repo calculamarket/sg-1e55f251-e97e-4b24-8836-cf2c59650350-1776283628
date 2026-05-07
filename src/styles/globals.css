@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,800;0,900;1,600;1,800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,48 +12,65 @@
 
 @layer base {
   :root {
-    --radius: 0.55rem;
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --radius: 1.75rem;
+    --background: 35 78% 97%;
+    --foreground: 256 29% 19%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 256 29% 19%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 158 64% 52%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 13% 91%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
+    --popover-foreground: 256 29% 19%;
+    --primary: 19 86% 66%;
+    --primary-foreground: 256 29% 19%;
+    --secondary: 149 50% 85%;
+    --secondary-foreground: 154 54% 30%;
+    --muted: 30 100% 95%;
+    --muted-foreground: 255 12% 50%;
+    --accent: 260 62% 89%;
+    --accent-foreground: 258 45% 49%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 158 64% 52%;
+    --border: 256 29% 19% / 0.1;
+    --input: 256 29% 19% / 0.1;
+    --ring: 19 86% 66%;
+    --xp-bg: #fef8f1;
+    --xp-ink: #2a2340;
+    --xp-ink2: #5b5470;
+    --xp-muted: #9089a8;
+    --xp-peach: #ffd8c2;
+    --xp-peach-d: #f48b5c;
+    --xp-mint: #c8ecd8;
+    --xp-mint-d: #2e9d70;
+    --xp-sky: #c9dcfb;
+    --xp-sky-d: #4e7ed6;
+    --xp-lilac: #ddd0f5;
+    --xp-lilac-d: #7b5dc4;
+    --xp-lemon: #fdf0b2;
+    --xp-lemon-d: #c8910a;
+    --xp-rose: #fcd0dd;
+    --xp-rose-d: #c94673;
+    --xp-shadow: 0 18px 46px rgba(42, 35, 64, 0.1);
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 158 64% 52%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
+    --background: 35 78% 97%;
+    --foreground: 256 29% 19%;
+    --card: 0 0% 100%;
+    --card-foreground: 256 29% 19%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 256 29% 19%;
+    --primary: 19 86% 66%;
+    --primary-foreground: 256 29% 19%;
+    --secondary: 149 50% 85%;
+    --secondary-foreground: 154 54% 30%;
+    --muted: 30 100% 95%;
+    --muted-foreground: 255 12% 50%;
+    --accent: 260 62% 89%;
+    --accent-foreground: 258 45% 49%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 158 64% 52%;
+    --border: 256 29% 19% / 0.1;
+    --input: 256 29% 19% / 0.1;
+    --ring: 19 86% 66%;
   }
 }
 
@@ -63,6 +80,13 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    background:
+      radial-gradient(circle at 88% 2%, rgba(255, 216, 194, 0.82), transparent 24rem),
+      radial-gradient(circle at 4% 18%, rgba(221, 208, 245, 0.78), transparent 22rem),
+      radial-gradient(circle at 78% 62%, rgba(200, 236, 216, 0.62), transparent 17rem),
+      var(--xp-bg);
+    color: var(--xp-ink);
+    letter-spacing: 0;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
@@ -72,5 +96,75 @@
 @layer components {
   .container {
     @apply mx-auto px-4 md:px-6 lg:px-8 max-w-7xl w-full;
+  }
+
+  .xp-chip {
+    @apply inline-flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground shadow-sm;
+  }
+
+  .xp-chip::before {
+    content: "";
+    @apply h-2.5 w-2.5 rounded-full bg-primary;
+  }
+
+  .xp-page-title {
+    @apply font-heading text-5xl font-black leading-none text-foreground md:text-6xl;
+    letter-spacing: 0;
+  }
+
+  .xp-soft-panel {
+    @apply rounded-[2rem] border bg-card shadow-[var(--xp-shadow)];
+  }
+
+  .xp-pastel-peach {
+    background: var(--xp-peach);
+  }
+
+  .xp-pastel-mint {
+    background: var(--xp-mint);
+  }
+
+  .xp-pastel-sky {
+    background: var(--xp-sky);
+  }
+
+  .xp-pastel-lilac {
+    background: var(--xp-lilac);
+  }
+
+  .xp-pastel-rose {
+    background: var(--xp-rose);
+  }
+
+  .xp-divider {
+    @apply my-4 h-1 w-24 rounded-full;
+    background: linear-gradient(90deg, var(--xp-peach-d), var(--xp-rose-d));
+  }
+
+  input,
+  textarea,
+  button[role="combobox"] {
+    @apply rounded-2xl border bg-white/85 shadow-sm;
+  }
+
+  table {
+    @apply overflow-hidden rounded-[1.5rem];
+  }
+
+  thead tr {
+    background: var(--xp-bg);
+  }
+
+  tbody tr {
+    @apply transition-colors;
+  }
+
+  tbody tr:hover {
+    background: rgba(255, 216, 194, 0.28);
+  }
+
+  [data-radix-popper-content-wrapper] [role="listbox"],
+  [data-radix-popper-content-wrapper] [role="menu"] {
+    @apply rounded-[1.5rem] border bg-white shadow-[var(--xp-shadow)];
   }
 }

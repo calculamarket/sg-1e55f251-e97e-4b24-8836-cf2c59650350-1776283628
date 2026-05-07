@@ -139,7 +139,9 @@ export default function Orders() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold font-heading">Pedidos</h1>
+              <div className="xp-chip mb-4">Order flow</div>
+              <h1 className="xp-page-title">Pedidos</h1>
+              <div className="xp-divider" />
               <p className="text-muted-foreground">Gerencie os pedidos de todos os marketplaces</p>
             </div>
             <div className="flex gap-2">
@@ -162,7 +164,7 @@ export default function Orders() {
             </div>
           </div>
 
-          <div className="bg-card border rounded-lg shadow-sm">
+          <div className="xp-soft-panel bg-white">
             <div className="p-4 border-b flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -301,7 +303,7 @@ export default function Orders() {
             </DialogHeader>
 
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-card border rounded-lg p-4">
+              <div className="xp-soft-panel bg-[var(--xp-mint)] p-4">
                 <p className="text-sm text-muted-foreground">Lucro Total</p>
                 <p className={cn(
                   "text-2xl font-bold",
@@ -310,7 +312,7 @@ export default function Orders() {
                   R$ {totalProfit.toFixed(2).replace('.', ',')}
                 </p>
               </div>
-              <div className="bg-card border rounded-lg p-4">
+              <div className="xp-soft-panel bg-[var(--xp-sky)] p-4">
                 <p className="text-sm text-muted-foreground">Margem Média</p>
                 <p className={cn(
                   "text-2xl font-bold",
@@ -319,7 +321,7 @@ export default function Orders() {
                   {avgMargin.toFixed(1)}%
                 </p>
               </div>
-              <div className="bg-card border rounded-lg p-4">
+              <div className="xp-soft-panel bg-[var(--xp-lilac)] p-4">
                 <p className="text-sm text-muted-foreground">Pedidos Analisados</p>
                 <p className="text-2xl font-bold">{profitAnalysis.length}</p>
               </div>
